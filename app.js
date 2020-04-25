@@ -9,17 +9,32 @@ const multer = require('multer');
 //custom modules
 const feedRoutes = require('./routes/feed');
 
+//initializing express app
 const app = express();
 
-//multer configs
+
+
+
+//multer config
 const fileStorage = multer.diskStorage({
-	destinaion: (req, file, cb) => {
+	destination: (req, file, cb) => {
 		cb(null, 'images');
 	},
 	filename: (req, file, cb) => {
-		cb(null, )
+		cb(null, new Date().toISOString() + '-' + file.originalname);
 	}
 })
+
+const fileFilter = (req, file, cb) => {
+	if(file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+		cb(null, true);
+	}
+	else {
+		cb(null, false);
+	}
+}
+
+
 
 //middlewares
 app.use((req, res, next) => {
@@ -30,8 +45,10 @@ app.use((req, res, next) => {
 });
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
 
-//multer
+
+
 
 //routes
 app.use('/feed', feedRoutes);
