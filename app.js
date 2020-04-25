@@ -66,7 +66,7 @@ app.use((err, req, res, next) => {
 
 mongoose
 .connect(
-	'mongodb+srv://mohdimran:0NM4anG3Hh5hviKg@cluster0-gudn3.mongodb.net/messages?retryWrites=true&w=majority'
+	'mongodb+srv://USERNAME:PASSWORD@cluster0-gudn3.mongodb.net/DATABASE?retryWrites=true&w=majority'
 )
 .then(result => {
 	//server
