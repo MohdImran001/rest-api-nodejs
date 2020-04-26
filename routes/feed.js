@@ -23,6 +23,8 @@ Router.put('/post/:postId', [
 	body('title').trim().isLength({ min:5 }),
 	body('content').trim().isLength({ min:5 })
 
-],feedCtrl.updatePost);
+], feedCtrl.updatePost);
+
+Router.delete('/post/:postId', feedCtrl.deletePost);
 
 module.exports = Router;

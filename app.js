@@ -8,11 +8,11 @@ const multer = require('multer');
 
 //custom modules
 const feedRoutes = require('./routes/feed');
+const authRoutes = require('./routes/auth');
+
 
 //initializing express app
 const app = express();
-
-
 
 
 //multer config
@@ -52,6 +52,7 @@ app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
 
 //routes
 app.use('/feed', feedRoutes);
+app.use('/auth', authRoutes);
 
 
 //ERROR HANDLER
