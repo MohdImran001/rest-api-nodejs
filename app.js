@@ -44,6 +44,7 @@ app.use((req, res, next) => {
    next();
 });
 
+app.use(bodyParser.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
 
@@ -59,8 +60,10 @@ app.use('/auth', authRoutes);
 app.use((err, req, res, next) => {
 	console.log(err);
 	const statusCode = err.statusCode || 500;
+	const data = err.data || null;
 	res.status(statusCode).json({
-		"message" : err.message
+		"message" : err.message,
+		"data": data
 	})
 })
 
