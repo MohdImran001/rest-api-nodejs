@@ -18,7 +18,7 @@ const UserSchema = new Schema({
 	},
 	status: {
 		type: String, 
-		required: true
+		default: "I am new!"
 	},
 	posts: [ {
 
@@ -28,3 +28,5 @@ const UserSchema = new Schema({
 	} ]
 
 })
+
+module.exports = mongoose.model('User', UserSchema);

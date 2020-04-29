@@ -70,7 +70,7 @@ app.use((err, req, res, next) => {
 
 mongoose
 .connect(
-	'mongodb+srv://USERNAME:PASSWORD@cluster0-gudn3.mongodb.net/DATABASE?retryWrites=true&w=majority'
+	'auth_string'
 )
 .then(result => {
 	//server
