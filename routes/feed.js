@@ -6,6 +6,12 @@ const feedCtrl = require('../controllers/feed');
 
 const Router = express.Router();
 
+//GET /feed/status
+Router.get('/status', isAuth, feedCtrl.getUserStatus)
+
+//PUT /feed/update-status
+Router.put('/update-status', isAuth, feedCtrl.updateStatus);
+
 //GET /feed/posts
 Router.get('/posts', isAuth, feedCtrl.getPosts);
 
