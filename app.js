@@ -70,13 +70,19 @@ app.use((err, req, res, next) => {
 
 mongoose
 .connect(
-	'auth_string'
+	'CONNECTION_STRING'
 )
 .then(result => {
 	//server
-	app.listen(8080, () => {
+	const server = app.listen(8080, () => {
     	console.log("server started");
 	});
+
+	const io = require('socket.io')(server);
+
+	io.on('connection', (socket) => {
+		console.log("client connected");
+	})
 })
 
 
