@@ -3,8 +3,9 @@ const path = require('path');
 
 const { validationResult } = require('express-validator/check');
 
+const io = require('../socket');
 const Post = require('../models/post');
-const User = require('../models/user')
+const User = require('../models/user');
 
 function errorHandler(message, statusCode) {
     const error = new Error(message);
@@ -49,14 +50,14 @@ exports.updateStatus = (req, res, next) => {
 
 exports.getPosts = (req, res, next) => {
     const currentPage = req.query.page || 1;
-    const perPage = 2;
+    const perPage = 6;
 
     let totalItems;
     Post
     .countDocuments()
     .then(count => {
         totalItems = count;
-        return Post.find().skip(( currentPage - 1 ) * perPage).limit(perPage);
+        return Post.find().sort({ createdAt: -1 }).populate('creator').skip(( currentPage - 1 ) * perPage).limit(perPage);
     })
     .then(posts => {
         res
@@ -109,6 +110,7 @@ exports.createPost = (req, res, next) => {
         return user.save();
     })
     .then(result => {
+        io.getIO().emit('posts', { action: "create", post: { ...post._doc, creator: { _id: req.userId, name: result.name } } });
         res.status(201).json({
             message: 'Post Created Successfully',
             post: post,
@@ -170,6 +172,7 @@ exports.updatePost = (req, res, next) => {
 
     Post
     .findById(postId)
+    .populate('creator')
     .then(post => {
         if(!post) {
             const error = new Error('no post found');
@@ -177,7 +180,7 @@ exports.updatePost = (req, res, next) => {
             throw error;
         }
 
-        if(post.creator.toString() !== req.userId) {
+        if(post.creator._id.toString() !== req.userId) {
             return errorHandler('Not Authorized', 403);
         }
 
@@ -190,6 +193,7 @@ exports.updatePost = (req, res, next) => {
         return post.save();
     })
     .then(result => {
+        io.getIO().emit('posts',  { action: "update", post: result });
         res
         .status(200)
         .send({ 
@@ -235,6 +239,7 @@ exports.deletePost = (req, res, next) => {
         return user.save();
     })
     .then(result => {
+        io.getIO().emit('posts', { action: 'delete', post: postId });
         res
         .status(200)
         .json({
