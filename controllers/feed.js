@@ -73,54 +73,96 @@ exports.getPosts = (req, res, next) => {
     })
 };
 
-exports.createPost = (req, res, next) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()) {
-        const error = new Error("Validation Failed, enterede data is incorrect");
-        error.statusCode = 422;
-        throw error;
+exports.createPost = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed, entered data is incorrect.');
+    error.statusCode = 422;
+    throw error;
+  }
+  if (!req.file) {
+    const error = new Error('No image provided.');
+    error.statusCode = 422;
+    throw error;
+  }
+  const imageUrl = req.file.path;
+  const title = req.body.title;
+  const content = req.body.content;
+  const post = new Post({
+    title: title,
+    content: content,
+    imageUrl: imageUrl,
+    creator: req.userId
+  });
+  try {
+    await post.save();
+    const user = await User.findById(req.userId);
+    user.posts.push(post);
+    let loadedUser = await user.save();
+
+    res.status(201).json({
+      message: 'Post created successfully!',
+      post: post,
+      creator: { _id: user._id, name: user.name }
+    });
+
+    return loadedUser;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
     }
-
-    if(!req.file) {
-        const error = new Error('no image found');
-        error.statusCode = 422;
-        throw error;
-    }
-
-    const imageUrl = req.file.path;
-    const title = req.body.title;
-    const content = req.body.content;
-    let creator;
-
-    const post = new Post({
-        title: title,
-        content: content,
-        imageUrl: imageUrl,
-        creator: req.userId
-    })
-    
-    post
-    .save()
-    .then(postDoc => {
-        return User.findById(req.userId);
-    })
-    .then(user => {
-        creator = user;
-        user.posts.push(post);
-        return user.save();
-    })
-    .then(result => {
-        io.getIO().emit('posts', { action: "create", post: { ...post._doc, creator: { _id: req.userId, name: result.name } } });
-        res.status(201).json({
-            message: 'Post Created Successfully',
-            post: post,
-            creator: { _id: creator._id, name: creator.name }
-        })
-    })
-    .catch(err => {
-        next(err);
-    })
+    next(err);
+  }
 };
+
+// exports.createPost = (req, res, next) => {
+//     const errors = validationResult(req);
+//     if(!errors.isEmpty()) {
+//         const error = new Error("Validation Failed, enterede data is incorrect");
+//         error.statusCode = 422;
+//         throw error;
+//     }
+
+//     if(!req.file) {
+//         const error = new Error('no image found');
+//         error.statusCode = 422;
+//         throw error;
+//     }
+
+//     const imageUrl = req.file.path;
+//     const title = req.body.title;
+//     const content = req.body.content;
+//     let creator;
+
+//     const post = new Post({
+//         title: title,
+//         content: content,
+//         imageUrl: imageUrl,
+//         creator: req.userId
+//     })
+    
+//     post
+//     .save()
+//     .then(postDoc => {
+//         return User.findById(req.userId);
+//     })
+//     .then(user => {
+//         creator = user;
+//         user.posts.push(post);
+//         return user.save();
+//     })
+//     .then(result => {
+//         io.getIO().emit('posts', { action: "create", post: { ...post._doc, creator: { _id: req.userId, name: result.name } } });
+//         res.status(201).json({
+//             message: 'Post Created Successfully',
+//             post: post,
+//             creator: { _id: creator._id, name: creator.name }
+//         })
+//     })
+//     .catch(err => {
+//         next(err);
+//     })
+// };
 
 exports.getPost = (req, res, next) => {
     const postId = req.params.postId;
